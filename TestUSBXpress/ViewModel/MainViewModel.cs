@@ -41,10 +41,13 @@ namespace TestUSBXpress.ViewModel
             get => _isLed1On;
             set
             {
-                _isLed1On = value;
+                _isLed1On = value;               
+                _inBuffer[0] = (byte)(IsLed1On ? 1 : 0);
+                OnPropertyChanged("IsLed1On");
+
                 if (_device.IsConnected)
                 {
-                    SwitchLed(1);
+                    WriteToDevice();
                 }               
             }
         }
@@ -55,9 +58,12 @@ namespace TestUSBXpress.ViewModel
             set
             {
                 _isLed2On = value;
+                _inBuffer[1] = (byte)(IsLed2On ? 1 : 0);
+                OnPropertyChanged("IsLed2On");
+
                 if (_device.IsConnected)
                 {
-                    SwitchLed(2);
+                    WriteToDevice();
                 }               
             }
         }
@@ -116,7 +122,7 @@ namespace TestUSBXpress.ViewModel
                     {
                         Status = "Device connected";
                         _cancelTokenSource = new CancellationTokenSource();
-                        await ReadFromDevice(_cancelTokenSource.Token);
+                        ReadFromDevice(_cancelTokenSource.Token);
                     }
                 }
                 catch (Exception ex)
@@ -126,14 +132,13 @@ namespace TestUSBXpress.ViewModel
             });
         
         public RelayCommand CloseWindowCommand => new RelayCommand(
-            async action =>
+            action =>
             {
                 if (_device.IsConnected)
                 {
                     _inBuffer[0] = 0;
                     _inBuffer[1] = 0;
-                    await _device.WriteToDeviceAsync(_inBuffer);
-
+                    WriteToDevice();
                     _device.Close();
                 }
 
@@ -171,7 +176,7 @@ namespace TestUSBXpress.ViewModel
             _disconnectWatcher.Start();
         }
 
-        private async Task ReadFromDevice(CancellationToken token)
+        private async void ReadFromDevice(CancellationToken token)
         {
             while (!token.IsCancellationRequested)
             {
@@ -187,20 +192,8 @@ namespace TestUSBXpress.ViewModel
             }
         }
 
-        private async void SwitchLed(int ledNumber)
-        {
-            switch (ledNumber)
-            {
-                case 1:
-                    _inBuffer[0] = (byte)(IsLed1On ? 1 : 0);
-                    break;
-                case 2:
-                    _inBuffer[1] = (byte)(IsLed2On ? 1 : 0);
-                    break;
-                default:
-                    break;
-            }
-
+        private async void WriteToDevice()
+        {         
             try
             {
                 await _device.WriteToDeviceAsync(_inBuffer);
@@ -228,7 +221,7 @@ namespace TestUSBXpress.ViewModel
 
                 Status = "Device connected";
                 _cancelTokenSource = new CancellationTokenSource();
-                await ReadFromDevice(_cancelTokenSource.Token);
+                ReadFromDevice(_cancelTokenSource.Token);
             }
             catch (Exception ex)
             {
@@ -245,6 +238,8 @@ namespace TestUSBXpress.ViewModel
                     _device.IsConnected = false;
                 }
 
+                IsLed1On = false;
+                IsLed2On = false;
                 Status = "Device disconnected";
                 _cancelTokenSource.Cancel();
             }

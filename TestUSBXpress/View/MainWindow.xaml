@@ -45,8 +45,8 @@
 
             <GroupBox Grid.Row="0" Grid.Column="0" Margin="0 0 5 0"  Header="LEDs" Padding="5">
                 <StackPanel>
-                    <CheckBox Content="LED 1" IsChecked="{Binding IsLed1On, Mode=OneWayToSource}"/>
-                    <CheckBox Margin="0 10 0 0" Content="LED 2" IsChecked="{Binding IsLed2On, Mode=OneWayToSource}"/>
+                    <CheckBox Content="LED 1" IsChecked="{Binding IsLed1On}"/>
+                    <CheckBox Margin="0 10 0 0" Content="LED 2" IsChecked="{Binding IsLed2On}"/>
                 </StackPanel>
             </GroupBox>
 
